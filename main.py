@@ -1,5 +1,7 @@
 import pygame, os, time
 from tiles import *
+from bullet import Bullet   
+from character import character
 pygame.font.init()
 pygame.init()
 
@@ -69,7 +71,6 @@ ENEMY_SIZE = 20
 
 
 # Importing Images
-house = pygame.image.load(os.path.join("Assets", 'example_bg.png')).convert()
 char_stationary_right_image = pygame.image.load(os.path.join("Assets", "char_stationary_right.png"))
 char_walking_right_image = pygame.image.load(os.path.join("Assets", "char_walking_right.png"))
 char_jump_right_image = pygame.image.load(os.path.join("Assets", "char_jump_right.png"))
@@ -79,6 +80,8 @@ char_stationary_left_image = pygame.image.load(os.path.join("Assets", "char_stat
 char_walking_left_image = pygame.image.load(os.path.join("Assets", "char_walking_left.png"))
 char_jump_left_image = pygame.image.load(os.path.join("Assets", "char_jump_left.png"))
 char_falling_left_image = pygame.image.load(os.path.join("Assets", "char_falling_left.png"))
+
+print(char_falling_left_image.get_size())
 
 # Transforming Images
 char_stationary_right = pygame.transform.scale(char_stationary_right_image, CHAR_STATIONARY_DIMENSIONS)
@@ -102,34 +105,10 @@ char_dimensions = {"stationary" : CHAR_STATIONARY_DIMENSIONS, "jumping" : CHAR_J
 char_images = {"stationary" : {"right" : char_stationary_right, "left": char_stationary_left}, "walking" : {"right" : char_walking_right, "left": char_walking_left}, "jumping" : {"right" : char_jump_right, "left": char_jump_left}, "falling" : {"right" : char_falling_right, "left": char_falling_left}, "dashing" : {"right" : char_walking_right, "left": char_walking_left}}
 
 
-# Sprite Class for Player
-class character(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.Rect = pygame.Rect(0, 0, 0, 0)
-
-player = character() # instantiation statement for player
+# instantiation statement for player
+player = character(WIN_HEIGHT, WIN_WIDTH, FPS, )
 
 
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, width, height, direction, pos):
-        super().__init__()
-
-        self.image = pygame.Surface((width, height))
-        self.image.fill(red)
-        self.rect = self.image.get_rect(center=pos)
-
-        if direction == "right":
-            self.direction = 1
-        else:
-            self.direction = -1
-
-
-    def update(self):
-        if self.rect.x < 0 or self.rect.x > WIN_WIDTH or self.rect.y < 0 or self.rect.y > WIN_HEIGHT:
-            self.kill()
-
-        self.rect.x += BULLET_VEL*self.direction
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -156,8 +135,8 @@ class Enemy(pygame.sprite.Sprite):
         if self.cooldown == 0:
             self.cooldown = self.cooldown_time
 
-            bulletr = Bullet(BULLET_WIDTH, BULLET_HEIGHT, "right", (self.rect.x, self.rect.y + self.rect.height//2))
-            bulletl = Bullet(BULLET_WIDTH, BULLET_HEIGHT, "left", (self.rect.x, self.rect.y + self.rect.height//2))
+            bulletr = Bullet(BULLET_WIDTH, BULLET_HEIGHT, 1, (self.rect.x, self.rect.y + self.rect.height//2))
+            bulletl = Bullet(BULLET_WIDTH, BULLET_HEIGHT, -1, (self.rect.x, self.rect.y + self.rect.height//2))
             enemy_bullets.add(bulletr)
             enemy_bullets.add(bulletl)
 
@@ -185,13 +164,12 @@ def display_window():
     player.Rect.width = CHAR_STATIONARY_DIMENSIONS[0]
 
 
-    map.draw_map(WIN, camera_offset_x, camera_offset_y)
-    WIN.blit(char_image, (player.Rect.topleft[0] + player_offset, player.Rect.topleft[1]))
+    map.draw_map(WIN, player.camera_offset.x, player.camera_offset.y)
     player_bullets.draw(WIN)
     enemies.draw(WIN)
     enemy_bullets.draw(WIN)
     
-
+'''
 # Function to check if character is stationary
 def is_stationary():
     keys = pygame.key.get_pressed()
@@ -283,7 +261,7 @@ def boundary_restrictions():
     global camera_offset_y
 
 
-    if player.Rect.collidedict()
+    #if player.Rect.collidedict()
 
     if player.Rect.top < 0:
         camera_offset_y = player.Rect.top
@@ -320,6 +298,7 @@ def gravity():
 
     player.Rect.move_ip(0, momentum)
 
+'''
 
 # Main Function
 def main():
@@ -335,15 +314,11 @@ def main():
                 running = False
 
 
-        handle_movement()
-        boundary_restrictions()
-        cooldowns()
-        handle_states()
-        gravity()
+
         enemies.update()
         enemy_bullets.update()
         player_bullets.update()
-        #print(player.Rect.top, camera_offset_y)
+        player.update(player_bullets)
         
 
         display_window()
